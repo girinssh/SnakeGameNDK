@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         timer++;
                         cnt = 0;
 
-                        // TODO: sendTime2HW(timer);
+                        sendTime2HW(timer);
 
                         combo_time = isLengthIncrease ? gm.getComboMaxInterval() : max(combo_time - 1, 0);
                         if (combo_time == 0) {
