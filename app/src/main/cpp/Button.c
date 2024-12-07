@@ -16,7 +16,7 @@
 JNIEXPORT
 jchar JNICALL
 Java_kr_ac_cau_1embedded_snakegame_MainActivity_getInputFromHW(JNIEnv* env, jobject thiz) {
-    jchar button_state;
+    jchar button_state = 0;
 
     int button_fd, ret, i, cnt;
     char button_raw[9] = {0};
@@ -24,12 +24,13 @@ Java_kr_ac_cau_1embedded_snakegame_MainActivity_getInputFromHW(JNIEnv* env, jobj
     button_fd = open("/dev/button", O_RDONLY);
 
     if(button_fd < 0){
-        printf("Device open error : /dev/button\n");
+        __android_log_print(ANDROID_LOG_ERROR, "BUTTON_HW", "Device open error : /dev/button");
     }
     else {
         ret = read(button_fd, button_raw, 9);
         if(ret != 9){
-            fprintf(stderr, "FAILED TO READ BUTTON STATES\n");
+
+            __android_log_print(ANDROID_LOG_ERROR, "BUTTON_HW", "FAILED TO READ BUTTON STATES");
             } else {
                 cnt = 0;
                 button_state = 0;
@@ -37,9 +38,11 @@ Java_kr_ac_cau_1embedded_snakegame_MainActivity_getInputFromHW(JNIEnv* env, jobj
                     if(button_raw[i] != 0){
                         cnt++;
                         if(cnt > 1){
+                            __android_log_print(ANDROID_LOG_WARN, "BUTTON_HW", "MULTI_SELECT_EXCEPTION");
                             return MULTI_SELECT_EXCEPTION;
                         }
                         if(i % 2 != 1){
+                            __android_log_print(ANDROID_LOG_WARN, "BUTTON_HW", "NON_FUNCTIONAL_BUTTON_EXCEPTION");
                             return NON_FUNCTIONAL_BUTTON_EXCEPTION;
                         }
 
