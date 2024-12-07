@@ -185,7 +185,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         private void checkHWButton() {
             char buttonState = getInputFromHW();
 
-            // TODO:
+            if(buttonState == 10){
+                runOnUiThread(()->{
+                    Toast.makeText(
+                            peekAvailableContext(),
+                            "Don't Press Multiple Buttons!!",
+                            Toast.LENGTH_SHORT)
+                            .show();
+                });
+            }
+            else if(buttonState == 11) {
+                runOnUiThread(() -> {
+                    Toast.makeText(
+                                    peekAvailableContext(),
+                                    "Use buttons 1, 3, 5, and 7 only",
+                                    Toast.LENGTH_SHORT)
+                            .show();
+                });
+            }
+            switch (buttonState){
+                case 1:
+                    gm.moveSnake(GameType.TOP);
+                    break;
+                case 3:
+                    gm.moveSnake(GameType.LEFT);
+                    break;
+                case 5:
+                    gm.moveSnake(GameType.RIGHT);
+                    break;
+                case 7:
+                    gm.moveSnake(GameType.BOTTOM);
+                    break;
+                default:
+                    break;
+            }
+
         }
     }
 
