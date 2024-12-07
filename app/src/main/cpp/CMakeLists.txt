@@ -54,17 +54,41 @@ add_library(
         DotMatrix.c
 )
 
+
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this
 # build script, prebuilt third-party libraries, or Android system libraries.
 target_link_libraries(
-
         MoveButton
-        Apple
-        Time7Seg
-        ScoreLCD
+
+        # List libraries link to the target library
+        android
+        log
+)
+target_link_libraries(
         Effector
 
         # List libraries link to the target library
         android
-        log)
+        log
+)
+target_link_libraries(
+        ScoreLCD
+
+        # List libraries link to the target library
+        android
+        log
+)
+target_link_libraries(
+        Time7Seg
+
+        # List libraries link to the target library
+        android
+        log
+)
+target_link_libraries(
+        Apple
+        # List libraries link to the target library
+        android
+        log
+)

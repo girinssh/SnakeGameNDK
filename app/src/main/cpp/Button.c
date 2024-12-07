@@ -1,14 +1,12 @@
 //
 // Created by tngus on 2024-12-07.
 //
-
 #include <jni.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <android/log.h>
-#include <jni.h>
 
 #define MULTI_SELECT_EXCEPTION 10
 #define NON_FUNCTIONAL_BUTTON_EXCEPTION 11
