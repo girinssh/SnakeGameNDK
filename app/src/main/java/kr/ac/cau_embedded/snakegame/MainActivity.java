@@ -23,7 +23,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int bottom_id;
 
     private TextView timerTextView, scoreTextView, comboTextView;
-    private AlertDialog dialog;
 
     // Used to load the 'snakegame' library on application startup.
     static {
@@ -33,10 +32,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         System.loadLibrary("Time7Seg");
         System.loadLibrary("Effector");
     }
-    public native char[] getInputFromHW();
+    public native char getInputFromHW();
     public native void sendTime2HW(int time);
-    public native void sendScore2HW(int score);
-    public native void sendCombo2HW(int combo);
+//    public native void sendScore2HW(int score);
+//    public native void sendCombo2HW(int combo);
     private ActivityMainBinding binding;
 
     @Override
@@ -142,8 +141,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (cnt % gm.getmSpeed() == 0) {
                         timer++;
                         cnt = 0;
-                        // TODO: SEND TIME
-                        sendTime2HW(timer);
+
+                        // TODO: sendTime2HW(timer);
 
                         combo_time = isLengthIncrease ? gm.getComboMaxInterval() : max(combo_time - 1, 0);
                         if (combo_time == 0) {
@@ -151,10 +150,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                         gm.getScoreManager().increaseScore(isLengthIncrease);
 
-                        //TODO: SEND SCORE and COMBO
                         updateTextView();
-                        sendScore2HW(gm.getScoreManager().getScore());
-                        sendCombo2HW(gm.getScoreManager().getCombo());
+                        //TODO: sendScore2HW(gm.getScoreManager().getScore());
+                        //TODO: sendCombo2HW(gm.getScoreManager().getCombo());
                     }
                 }
             }
@@ -173,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         private void checkHWButton() {
-            char[] buttonState = getInputFromHW();
+            char buttonState = getInputFromHW();
 
             // TODO:
         }
