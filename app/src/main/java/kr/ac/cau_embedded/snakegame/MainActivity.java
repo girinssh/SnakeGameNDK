@@ -4,6 +4,7 @@ import static java.lang.Integer.max;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -26,9 +27,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // Used to load the 'snakegame' library on application startup.
     static {
-        System.loadLibrary("snakegame");
+        System.loadLibrary("MoveButton");
+        System.loadLibrary("Apple");
+        System.loadLibrary("ScoreLCD");
+        System.loadLibrary("Time7Seg");
+        System.loadLibrary("Effector");
     }
-
+    public native char[] getInputFromHW();
+    public native void sendTime2HW(int time);
+    public native void sendScore2HW(int score);
+    public native void sendCombo2HW(int combo);
     private ActivityMainBinding binding;
 
     @Override
@@ -56,24 +64,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.bottom_btn).setOnClickListener(this);
         findViewById(R.id.start_btn).setOnClickListener(this);
 
-        dialog = new AlertDialog.Builder(MainActivity.this.getApplicationContext()).setMessage("Game " + "Over!")
-                .setCancelable(false)
-                .setPositiveButton("Restart", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        gm.resetGame();
-                        GameMainThread thread = new GameMainThread();
-                        thread.start();
-                    }
-                })
-                .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
-                .create();
     }
 
     @Override
@@ -94,51 +84,78 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
     private void showMessageDialog() {
-        runOnUiThread(()->dialog.show());
+        runOnUiThread(()->new AlertDialog.Builder(peekAvailableContext()).setMessage("Game " + "Over!")
+                .setCancelable(false)
+                .setPositiveButton("Restart", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        gm.resetGame();
+                        GameMainThread thread = new GameMainThread();
+                        thread.start();
+                    }
+                })
+                .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .create().show());
     }
     private class GameMainThread extends Thread {
         // TODO public native char[] getPushButtonState();
         int timer = 0;
         int combo_time = 0;
         int cnt = 0;
+        @SuppressLint("NewApi")
         @Override
         public void run() {
             timer = 0;
             cnt = (int) -gm.getmSpeed();
             int oldSnakeLength = gm.getmSnakeLength();
-            boolean isLengthIncrease = false;
+            boolean isLengthIncrease;
+            long old = System.currentTimeMillis();
+
             while (!gm.getmIsEndGame()) {
                 // TODO: Check Hardware Button Input
                 checkHWButton();
 
-                gm.moveSnake(gm.getmSnakeDirection());
-                gm.checkCollision();
-                gm.refreshGridSquare();
-                gm.handleSnakeTail();
-                mSnakePanelView.postInvalidate();
-                handleSpeed();
+                if(System.currentTimeMillis() - old >= (1000/gm.getmSpeed())) {
+                    cnt++;
 
-                if(oldSnakeLength < gm.getmSnakeLength()){
-                    isLengthIncrease = true;
-                    oldSnakeLength = gm.getmSnakeLength();
-                } else {
-                    isLengthIncrease = false;
-                }
+                    old = System.currentTimeMillis();
+                    gm.moveSnake(gm.getmSnakeDirection());
+                    gm.checkCollision();
+                    gm.refreshGridSquare();
+                    gm.handleSnakeTail();
+                    mSnakePanelView.postInvalidate();
+//                handleSpeed();
 
-                // TODO: Update Time and Score
-                if(cnt % gm.getmSpeed() == 0){
-                    timer++;
-                    cnt = 0;
-                    // TODO: SEND TIME
-                    combo_time = isLengthIncrease ? gm.getComboMaxInterval() : max(combo_time - 1, 0);
-
-                    if(combo_time == 0){
-                        gm.getScoreManager().resetCombo();
+                    if (oldSnakeLength < gm.getmSnakeLength()) {
+                        isLengthIncrease = true;
+                        oldSnakeLength = gm.getmSnakeLength();
+                    } else {
+                        isLengthIncrease = false;
                     }
-                    gm.getScoreManager().increaseScore(isLengthIncrease);
+                    // TODO: Update Time and Score
+                    if (cnt % gm.getmSpeed() == 0) {
+                        timer++;
+                        cnt = 0;
+                        // TODO: SEND TIME
+                        sendTime2HW(timer);
 
-                    //TODO: SEND SCORE and COMBO
-                    updateTextView();
+                        combo_time = isLengthIncrease ? gm.getComboMaxInterval() : max(combo_time - 1, 0);
+                        if (combo_time == 0) {
+                            gm.getScoreManager().resetCombo();
+                        }
+                        gm.getScoreManager().increaseScore(isLengthIncrease);
+
+                        //TODO: SEND SCORE and COMBO
+                        updateTextView();
+                        sendScore2HW(gm.getScoreManager().getScore());
+                        sendCombo2HW(gm.getScoreManager().getCombo());
+                    }
                 }
             }
 
@@ -156,17 +173,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         private void checkHWButton() {
+            char[] buttonState = getInputFromHW();
 
-
-        }
-
-        private void handleSpeed() {
-            try {
-                sleep(1000 / gm.getmSpeed());
-                cnt++;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            // TODO:
         }
     }
+
+
 }
