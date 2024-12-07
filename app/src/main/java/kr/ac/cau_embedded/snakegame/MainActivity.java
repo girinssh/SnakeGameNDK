@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // Used to load the 'snakegame' library on application startup.
     static {
+        System.loadLibrary("snakegame");
         System.loadLibrary("MoveButton");
         System.loadLibrary("Apple");
         System.loadLibrary("ScoreLCD");
@@ -36,7 +37,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public native char getInputFromHW();
     public native void sendTime2HW(int time);
     public native void sendScore2HW(int score);
+
     public native void sendCombo2HW(int combo);
+
+    public native void resetLCD();
 
     public native void effectGameStart();
     public native void effectGameOver();
@@ -69,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.bottom_btn).setOnClickListener(this);
         findViewById(R.id.start_btn).setOnClickListener(this);
 
+        resetLCD();
+        sendCombo2HW(0);
     }
 
     @Override
@@ -124,8 +130,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             long old = System.currentTimeMillis();
 
             while (!gm.getmIsEndGame()) {
-                // TODO: Check Hardware Button Input
-                checkHWButton();
+//                checkHWButton();
 
                 if(System.currentTimeMillis() - old >= (1000/gm.getmSpeed())) {
                     cnt++;
@@ -145,12 +150,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     } else {
                         isLengthIncrease = false;
                     }
-                    // TODO: Update Time and Score
+
                     if (cnt % gm.getmSpeed() == 0) {
                         timer++;
                         cnt = 0;
 
-                        sendTime2HW(timer);
+//                        sendTime2HW(timer);
 
                         combo_time = isLengthIncrease ? gm.getComboMaxInterval() : max(combo_time - 1, 0);
                         if (combo_time == 0) {
@@ -160,8 +165,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         updateTextView();
                         sendScore2HW(gm.getScoreManager().getScore());
-                        sendCombo2HW(gm.getScoreManager().getCombo());
+//                        sendCombo2HW(gm.getScoreManager().getCombo());
                     }
+                }
+                try {
+                    sleep(50);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
             }
             effectGameOver();
