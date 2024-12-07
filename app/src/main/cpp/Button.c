@@ -8,17 +8,18 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <android/log.h>
+#include <jni.h>
 
-JNIEXPORT jcharArray JNICALL
-Java_kr_ac_cau_embedded_snakegame_MainActivity_getInputFromHW(JNIEnv
-* env,
-jobject thiz
-) {
-// TODO: implement getInputFromHW()
+#define MULTI_SELECT_EXCEPTION 10
+#define NON_FUNCTIONAL_BUTTON_EXCEPTION 11
 
-    int button_fd, ret, i;
+JNIEXPORT
+jchar JNICALL
+Java_kr_ac_cau_1embedded_snakegame_MainActivity_getInputFromHW(JNIEnv* env, jobject thiz) {
+    jchar button_state;
+
+    int button_fd, ret, i, cnt;
     char button_raw[9] = {0};
-    unsigned short button_state[9] = {0};
 
     button_fd = open("/dev/button", O_RDONLY);
 
@@ -29,12 +30,26 @@ jobject thiz
         ret = read(button_fd, button_raw, 9);
         if(ret != 9){
             fprintf(stderr, "FAILED TO READ BUTTON STATES\n");
-        } else {
-            for(i = 0; i < 9; i++){
-                button_state[i] = button_raw[i];
+            } else {
+                cnt = 0;
+                button_state = 0;
+                for(i = 0;i < 9; i++){
+                    if(button_raw[i] != 0){
+                        cnt++;
+                        if(cnt > 1){
+                            return MULTI_SELECT_EXCEPTION;
+                        }
+                        if(i % 2 != 1){
+                            return NON_FUNCTIONAL_BUTTON_EXCEPTION;
+                        }
+
+                        if(button_state == 0){
+                            button_state = i + 1;
+                        }
+                }
             }
         }
     }
-
+    close(button_fd);
     return button_state;
 }
