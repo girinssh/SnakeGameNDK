@@ -13,6 +13,7 @@ import android.widget.TextView;
 import kr.ac.cau_embedded.snakegame.databinding.ActivityMainBinding;
 
 import android.view.View;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private SnakePanelView mSnakePanelView;
@@ -34,8 +35,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
     public native char getInputFromHW();
     public native void sendTime2HW(int time);
-//    public native void sendScore2HW(int score);
-//    public native void sendCombo2HW(int combo);
+    public native void sendScore2HW(int score);
+    public native void sendCombo2HW(int combo);
+
+    public native void effectGameStart();
+    public native void effectGameOver();
+    public native void effectEatFood();
+
     private ActivityMainBinding binding;
 
     @Override
@@ -77,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             gm.setSnakeDirection(GameType.BOTTOM);
         if(v.getId() == R.id.start_btn){
             if(gm.resetGame()) {
+                effectGameStart();
                 GameMainThread thread = new GameMainThread();
                 thread.start();
             }
@@ -134,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (oldSnakeLength < gm.getmSnakeLength()) {
                         isLengthIncrease = true;
                         oldSnakeLength = gm.getmSnakeLength();
+                        effectEatFood();
                     } else {
                         isLengthIncrease = false;
                     }
@@ -151,13 +159,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         gm.getScoreManager().increaseScore(isLengthIncrease);
 
                         updateTextView();
-                        //TODO: sendScore2HW(gm.getScoreManager().getScore());
-                        //TODO: sendCombo2HW(gm.getScoreManager().getCombo());
+                        sendScore2HW(gm.getScoreManager().getScore());
+                        sendCombo2HW(gm.getScoreManager().getCombo());
                     }
                 }
             }
-
-            // TODO: Is Game Over
+            effectGameOver();
+            try {
+                sleep(500);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             showMessageDialog();
         }
 
