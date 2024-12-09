@@ -39,12 +39,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public native void sendScore2HW(int score);
 
     public native void sendCombo2HW(int combo);
-
     public native void resetLCD();
-
     public native void effectGameStart();
     public native void effectGameOver();
     public native void effectEatFood();
+    public native void resetApple();
+    public native void stopMotor();
 
     private ActivityMainBinding binding;
 
@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(v.getId() == R.id.start_btn){
             if(gm.resetGame()) {
                 effectGameStart();
+                resetApple();
                 GameMainThread thread = new GameMainThread();
                 thread.start();
             }
@@ -116,7 +117,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .create().show());
     }
     private class GameMainThread extends Thread {
-        // TODO public native char[] getPushButtonState();
         int timer = 0;
         final long interval = (1000/gm.getmSpeed());
 
@@ -130,9 +130,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             int oldSnakeLength = gm.getmSnakeLength();
             boolean isLengthIncrease;
             long old = System.currentTimeMillis();
+            TimerTask stopMotor = new TimerTask() {
+                @Override
+                public void run() {
+                    stopMotor();
+                }
+            };
 
             while (!gm.getmIsEndGame()) {
-//                checkHWButton();
+                checkHWButton();
 
                 if(System.currentTimeMillis() - old >= interval) {
                     cnt++;
@@ -197,13 +203,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     throw new RuntimeException(e);
                 }
             }
-            effectGameOver();
-            try {
-                sleep(500);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            showMessageDialog();
+
+            doGameOver();
         }
 
         private void updateTextView(){
@@ -214,7 +215,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
             );
         }
+        private void doGameOver(){
+            effectGameOver();
 
+            updateBestScoreTextView();
+            sendBestScore2HW(gm.getScoreManager().getBestScore());
+
+            try {
+                sleep(500);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            showMessageDialog();
+        }
         private void checkHWButton() {
             char buttonState = getInputFromHW();
 
