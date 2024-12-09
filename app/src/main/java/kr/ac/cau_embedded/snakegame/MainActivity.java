@@ -118,13 +118,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private class GameMainThread extends Thread {
         // TODO public native char[] getPushButtonState();
         int timer = 0;
-        int combo_time = 0;
-        int cnt = 0;
+        final long interval = (1000/gm.getmSpeed());
+
         @SuppressLint("NewApi")
         @Override
         public void run() {
+            int combo_time = 0;
+            int combo_cnt_offset = 0;
             timer = 0;
-            cnt = (int) -gm.getmSpeed();
+            int cnt = (int) -gm.getmSpeed();
             int oldSnakeLength = gm.getmSnakeLength();
             boolean isLengthIncrease;
             long old = System.currentTimeMillis();
@@ -132,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             while (!gm.getmIsEndGame()) {
 //                checkHWButton();
 
-                if(System.currentTimeMillis() - old >= (1000/gm.getmSpeed())) {
+                if(System.currentTimeMillis() - old >= interval) {
                     cnt++;
 
                     old = System.currentTimeMillis();
@@ -146,30 +148,51 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (oldSnakeLength < gm.getmSnakeLength()) {
                         isLengthIncrease = true;
                         oldSnakeLength = gm.getmSnakeLength();
-                        effectEatFood();
+
+                        combo_time = gm.getComboMaxInterval();
+                        combo_cnt_offset = cnt;
+
+                        new Thread(){
+                            @Override
+                            public void run() {
+                                super.run();
+                                effectEatFood();
+                            }
+                        }.start();
+
+                        gm.getScoreManager().increaseScore(isLengthIncrease);
+                        sendScore2HW(gm.getScoreManager().getScore());
+                        sendCombo2HW(gm.getScoreManager().getCombo());;
+                        updateScoreTextView();
+                        updateComboTextView();
+
+                        if(gm.getScoreManager().getCombo() % 8 == 0){
+
+                            Timer stopTimer = new Timer();
+                            stopTimer.schedule(stopMotor, 1000);
+                        }
                     } else {
                         isLengthIncrease = false;
+
+                        combo_time = cnt == combo_cnt_offset ? max(combo_time - 1, 0) : combo_time;
+
+                        if (combo_time == 0) {
+                            gm.getScoreManager().resetCombo();
+                            sendCombo2HW(gm.getScoreManager().getCombo());
+                            updateComboTextView();
+                        }
                     }
 
                     if (cnt % gm.getmSpeed() == 0) {
                         timer++;
                         cnt = 0;
 
-//                        sendTime2HW(timer);
-
-                        combo_time = isLengthIncrease ? gm.getComboMaxInterval() : max(combo_time - 1, 0);
-                        if (combo_time == 0) {
-                            gm.getScoreManager().resetCombo();
-                        }
-                        gm.getScoreManager().increaseScore(isLengthIncrease);
-
-                        updateTextView();
-                        sendScore2HW(gm.getScoreManager().getScore());
-//                        sendCombo2HW(gm.getScoreManager().getCombo());
+                        sendTime2HW(timer);
+                        updateTimerTextView();
                     }
                 }
                 try {
-                    sleep(50);
+                    sleep(interval/4);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
