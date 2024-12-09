@@ -9,8 +9,6 @@
 
 #define PATH "/dev/Timer"
 
-#define TIMER_MAGIC		0x03
-#define TIMER_UPDATE		_IOW(TIMER_MAGIC, 0, int)
 
 JNIEXPORT void JNICALL
 Java_kr_ac_cau_1embedded_snakegame_MainActivity_sendTime2HW(JNIEnv *env, jobject thiz, jint time) {
