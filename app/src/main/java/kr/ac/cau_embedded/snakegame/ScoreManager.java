@@ -4,6 +4,8 @@ public class ScoreManager {
     private int score = 0;
     private int combo = 0;
 
+    private int bestScore = 0;
+
     public ScoreManager() {
         reset();
     }
@@ -17,10 +19,12 @@ public class ScoreManager {
         combo = 0;
     }
     public void increaseScore(boolean isFoodEaten){
-        score += 1;
         if(isFoodEaten){
             combo++;
             score += combo;
+            if(score > bestScore){
+                bestScore = score;
+            }
         }
     }
 
@@ -29,5 +33,9 @@ public class ScoreManager {
     }
     public int getCombo(){
         return combo;
+    }
+
+    public int getBestScore(){
+        return bestScore;
     }
 }
