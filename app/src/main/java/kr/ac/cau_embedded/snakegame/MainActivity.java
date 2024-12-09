@@ -15,6 +15,9 @@ import kr.ac.cau_embedded.snakegame.databinding.ActivityMainBinding;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private SnakePanelView mSnakePanelView;
     private SnakeGameManager gm;
@@ -23,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int top_id;
     private int bottom_id;
 
-    private TextView timerTextView, scoreTextView, comboTextView;
+    private TextView timerTextView, scoreTextView, bestScoreTextView, comboTextView;
 
     // Used to load the 'snakegame' library on application startup.
     static {
@@ -37,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public native char getInputFromHW();
     public native void sendTime2HW(int time);
     public native void sendScore2HW(int score);
-
+    public native void sendBestScore2HW(int best_score);
     public native void sendCombo2HW(int combo);
     public native void resetLCD();
     public native void effectGameStart();
@@ -66,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         scoreTextView = findViewById(R.id.score_value);
         comboTextView = findViewById(R.id.combo_value);
         timerTextView = findViewById(R.id.time_value);
+        bestScoreTextView = findViewById(R.id.best_score_value);
 
         findViewById(R.id.left_btn).setOnClickListener(this);
         findViewById(R.id.right_btn).setOnClickListener(this);
@@ -151,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mSnakePanelView.postInvalidate();
 //                handleSpeed();
 
+                    // Snake Got Score
                     if (oldSnakeLength < gm.getmSnakeLength()) {
                         isLengthIncrease = true;
                         oldSnakeLength = gm.getmSnakeLength();
@@ -207,11 +212,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             doGameOver();
         }
 
-        private void updateTextView(){
+        private void updateComboTextView(){
             runOnUiThread(()->{
-                        scoreTextView.setText(String.valueOf(gm.getScoreManager().getScore()));
+                comboTextView.setText(String.valueOf(gm.getScoreManager().getCombo()));
+            });
+        }
+        private void updateScoreTextView(){
+            runOnUiThread(()->{
+                scoreTextView.setText(String.valueOf(gm.getScoreManager().getScore()));
+            });
+        }
+
+        private void updateTimerTextView(){
+            runOnUiThread(()->{
                         timerTextView.setText(String.valueOf(timer));
-                        comboTextView.setText(String.valueOf(gm.getScoreManager().getCombo()));
+                    }
+            );
+        }
+        private void updateBestScoreTextView(){
+            runOnUiThread(()->{
+                        bestScoreTextView.setText(String.valueOf(gm.getScoreManager().getBestScore()));
                     }
             );
         }
