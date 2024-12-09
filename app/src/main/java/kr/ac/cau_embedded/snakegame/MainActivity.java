@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // Used to load the 'snakegame' library on application startup.
     static {
-        System.loadLibrary("snakegame");
+//        System.loadLibrary("snakegame");
         System.loadLibrary("MoveButton");
         System.loadLibrary("Apple");
         System.loadLibrary("ScoreLCD");
@@ -264,23 +264,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 runOnUiThread(() -> {
                     Toast.makeText(
                                     peekAvailableContext(),
-                                    "Use buttons 1, 3, 5, and 7 only",
+                                    "Use buttons 2, 4, 6, and 8 only",
                                     Toast.LENGTH_SHORT)
                             .show();
                 });
             }
             switch (buttonState){
-                case 1:
-                    gm.moveSnake(GameType.TOP);
+                case 2:
+                    gm.setSnakeDirection(GameType.TOP);
                     break;
-                case 3:
-                    gm.moveSnake(GameType.LEFT);
+                case 4:
+                    gm.setSnakeDirection(GameType.LEFT);
                     break;
-                case 5:
-                    gm.moveSnake(GameType.RIGHT);
+                case 6:
+                    gm.setSnakeDirection(GameType.RIGHT);
                     break;
-                case 7:
-                    gm.moveSnake(GameType.BOTTOM);
+                case 8:
+                    gm.setSnakeDirection(GameType.BOTTOM);
                     break;
                 default:
                     break;
