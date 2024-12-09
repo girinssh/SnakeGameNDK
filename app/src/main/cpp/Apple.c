@@ -28,7 +28,7 @@ Java_kr_ac_cau_1embedded_snakegame_MainActivity_sendCombo2HW(JNIEnv *env, jobjec
         return;
     }
 
-    char val = (char)combo;
+    char val = (char) (combo != 0 ? ((combo-1) % 8 + 1) : 0);
 
     write(fd, &val, 1);
 
