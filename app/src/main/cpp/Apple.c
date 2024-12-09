@@ -11,6 +11,8 @@
 #define APPLE_SMT_OFF	_IOW(APPLE_MAGIC, 0, int)
 #define APPLE_RESET		_IOW(APPLE_MAGIC, 1, int)
 
+#define APPLE_SOUND_ON  _IOW(APPLE_MAGIC, 2, int)
+#define APPLE_SOUND_OFF  _IOW(APPLE_MAGIC, 3, int)
 
 int getDeviceFile(){
     int fd = open(PATH, O_WRONLY);
@@ -19,6 +21,7 @@ int getDeviceFile(){
     }
     return fd;
 }
+
 JNIEXPORT void JNICALL
 Java_kr_ac_cau_1embedded_snakegame_MainActivity_sendCombo2HW(JNIEnv *env, jobject thiz,
                                                              jint combo) {
