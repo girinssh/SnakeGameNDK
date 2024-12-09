@@ -54,6 +54,12 @@ add_library(
         DotMatrix.c
 )
 
+add_library(
+        Buzzer
+        SHARED
+        Buzzer.c
+)
+
 
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this
@@ -88,6 +94,12 @@ target_link_libraries(
 )
 target_link_libraries(
         Apple
+        # List libraries link to the target library
+        android
+        log
+)
+target_link_libraries(
+        Buzzer
         # List libraries link to the target library
         android
         log
