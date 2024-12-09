@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private SnakePanelView mSnakePanelView;
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         System.loadLibrary("ScoreLCD");
         System.loadLibrary("Time7Seg");
         System.loadLibrary("Effector");
+        System.loadLibrary("Buzzer");
     }
     public native char getInputFromHW();
     public native void sendTime2HW(int time);
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public native void effectEatFood();
     public native void resetApple();
     public native void stopMotor();
+    public native void soundOn();
 
     private ActivityMainBinding binding;
 
@@ -93,7 +96,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             gm.setSnakeDirection(GameType.BOTTOM);
         if(v.getId() == R.id.start_btn){
             if(gm.resetGame()) {
-                effectGameStart();
+                Thread sound = new Thread(){
+                    @Override
+                    public void run() {
+                        soundOn();
+                    }
+                };
+                sound.start();
+
+                Thread curtain = new Thread(){
+                    @Override
+                    public void run() {
+                        effectGameStart();
+                    }
+                };
+                curtain.start();
+
+                try {
+                    curtain.join();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
                 resetApple();
                 GameMainThread thread = new GameMainThread();
                 thread.start();
@@ -134,17 +158,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             int oldSnakeLength = gm.getmSnakeLength();
             boolean isLengthIncrease;
             long old = System.currentTimeMillis();
-            TimerTask stopMotor = new TimerTask() {
-                @Override
-                public void run() {
-                    stopMotor();
-                }
-            };
 
             while (!gm.getmIsEndGame()) {
-                checkHWButton();
-
                 if(System.currentTimeMillis() - old >= interval) {
+                    checkHWButton();
+
                     cnt++;
 
                     old = System.currentTimeMillis();
@@ -163,24 +181,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         combo_time = gm.getComboMaxInterval();
                         combo_cnt_offset = cnt;
 
-                        new Thread(){
-                            @Override
-                            public void run() {
-                                super.run();
-                                effectEatFood();
-                            }
-                        }.start();
-
                         gm.getScoreManager().increaseScore(isLengthIncrease);
                         sendScore2HW(gm.getScoreManager().getScore());
                         sendCombo2HW(gm.getScoreManager().getCombo());;
                         updateScoreTextView();
                         updateComboTextView();
 
-                        if(gm.getScoreManager().getCombo() % 8 == 0){
+                        new Thread(){
+                            @Override
+                            public void run() {
+                                effectEatFood();
+                            }
+                        }.start();
 
+
+
+                        if(gm.getScoreManager().getCombo() % 8 == 0){
                             Timer stopTimer = new Timer();
-                            stopTimer.schedule(stopMotor, 1000);
+                            stopTimer.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    stopMotor();
+                                }
+                            }, 1000);
+
                         }
                     } else {
                         isLengthIncrease = false;
@@ -240,6 +264,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             updateBestScoreTextView();
             sendBestScore2HW(gm.getScoreManager().getBestScore());
+            gm.getScoreManager().reset();
 
             try {
                 sleep(500);
