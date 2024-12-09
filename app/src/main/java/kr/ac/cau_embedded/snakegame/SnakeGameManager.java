@@ -11,7 +11,7 @@ public class SnakeGameManager {
     private GridPosition mSnakeHeader;
     private GridPosition mFoodPosition;
     private int mSnakeLength = 3;
-    private long mSpeed = 4;
+    private long mSpeed = 5;
     private int mSnakeDirection = GameType.RIGHT;
 
     public void setmGridSquare(List<List<GridSquare>> mGridSquare) {
